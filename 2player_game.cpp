@@ -34,7 +34,7 @@ int get_next_open_row(int** board, int col){
 void print_board(int** board){
 	for (int i = ROW_COUNT-1; i > -1; i--){
       	for (int j = 0; j < COLUMN_COUNT; j++)
-         	cout<<board[i][j];
+         	cout<<board[i][j]<<" ";
 		cout<<"\n";
 	}
 	cout<<"\n";
@@ -82,9 +82,10 @@ int main(){
 
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
-				if (row == -1)
+				if (row == -1){
 					printf("Error\n Whole column is filled\n");
 					break;
+				}
 				drop_piece(board, row, col, 1);
 				if (winning_move(board, 1)){
 					printf("Player 1 wins!!\n");
@@ -94,14 +95,15 @@ int main(){
 		}
 		// Ask for Player 2 Input
 		else{			
-			printf("Player 2: Select a column form 0-6:\n");
+			cout<<"Player 2: Select a column form 0-6:\n";
 			cin>>col;
 
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
-				if (row == -1)
+				if (row == -1){
 					printf("Error\n Whole column is filled\n");
 					break;
+				}
 				drop_piece(board, row, col, 2);
 				if (winning_move(board, 1)){
 					printf("Player 2 wins!!\n");
