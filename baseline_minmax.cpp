@@ -94,12 +94,14 @@ int evaluate_window(int* window, int size_window, int piece){
   else{
         if (count(window,size_window,piece) == 3 && count(window,size_window,EMPTY) == 1)
             score += 5;
-        if (count(window,size_window,piece) == 2 && count(window,size_window,EMPTY) == 2)
-            score += 2;
+		else{
+			if (count(window,size_window,piece) == 2 && count(window,size_window,EMPTY) == 2)
+            	score += 2;
+		}
   }
 
-  if (count(window,size_window,piece) == 3 && count(window,size_window,EMPTY) == 1)
-    score -= 4;
+  if (count(window,size_window,opp_piece) == 3 && count(window,size_window,EMPTY) == 1)
+    score -= 10;
 
   return score;
 }
@@ -113,39 +115,46 @@ int score_position(int** board, int piece){
 		center_count = count(center_array,ROW_COUNT,piece);
 	}
 	score += center_count * 3;
-
-    /*
 	// Score Horizontal
-	int** row_array[ROW_COUNT][COLUMN_COUNT];
-	int* window[WINDOW_LENGTH];
+	int window[WINDOW_LENGTH];
+	int row_array[COLUMN_COUNT];
+	int col_array[ROW_COUNT];
 	for (int r = 0; r < ROW_COUNT; r++){
-		for (int j = 0; j < COLUMN_COUNT; j++){
-			row_array[r][j] = board[r][j];	
+		for (int j = 0; j < COLUMN_COUNT; j++)
+			row_array[j] = board[r][j];
 		for (int c = 0; c < COLUMN_COUNT-3; c++){
 			for (int w = 0; w < WINDOW_LENGTH; w++)
-				window[w] = row_array[c+w]
-			score += evaluate_window(window, WINDOW_LENGTH, piece)
-	}
-					   
-	
+				window[w] = row_array[c+w];
+			score += evaluate_window(window, WINDOW_LENGTH, piece);
+        }
+    }
     // Score Vertical
-	for c in range(COLUMN_COUNT):
-		col_array = [int(i) for i in list(board[:,c])]
-		for r in range(ROW_COUNT-3):
-			window = col_array[r:r+WINDOW_LENGTH]
-			score += evaluate_window(window, piece)
-
-	// Score posiive sloped diagonal
-	for r in range(ROW_COUNT-3):
-		for c in range(COLUMN_COUNT-3):
-			window = [board[r+i][c+i] for i in range(WINDOW_LENGTH)]
-			score += evaluate_window(window, piece)
-
-	for r in range(ROW_COUNT-3):
-		for c in range(COLUMN_COUNT-3):
-			window = [board[r+3-i][c+i] for i in range(WINDOW_LENGTH)]
-			score += evaluate_window(window, piece)
-    */
+	for (int c = 0; c < COLUMN_COUNT; c++){
+		for (int j = 0; j < ROW_COUNT; j++)
+			col_array[j] = board[j][c];
+		for (int r = 0; r < ROW_COUNT-3; r++){
+			for (int w = 0; w < WINDOW_LENGTH; w++)
+				window[w] = col_array[r+w];
+			score += evaluate_window(window, WINDOW_LENGTH, piece);
+        }
+    }
+	// Score positive sloped diagonal
+	for (int r = 0; r < ROW_COUNT-3; r++){
+		for (int c = 0; c < COLUMN_COUNT-3; c++){
+			for (int w = 0; w < WINDOW_LENGTH; w++)
+				window[w] = board[r+w][c+w];
+			score += evaluate_window(window, WINDOW_LENGTH, piece);
+		}
+	}
+	// Score negative sloped diagonal
+	for (int r = 0; r < ROW_COUNT-3; r++){
+		for (int c = 0; c < COLUMN_COUNT-3; c++){
+			for (int w = 0; w < WINDOW_LENGTH; w++)
+				window[w] = board[r+3-w][c+w];
+			score += evaluate_window(window, WINDOW_LENGTH, piece);
+		}
+	}
+    
 	return score;
 }
 
@@ -169,7 +178,7 @@ int pick_best_move(int** board, int piece){
 	int best_score = -10000, col, row, score;
     int** temp_board;
 	temp_board = create_board();
-    int len_valid_loc = valid_locations[0]; 
+    int len_valid_loc = valid_locations[0];
     int RandIndex = rand() % len_valid_loc;
 	int best_col = valid_locations[RandIndex+1];
 	for(int i = 1; i < len_valid_loc+1; i++){
@@ -243,11 +252,13 @@ def minimax(board, depth, alpha, beta, maximizingPlayer){
 }*/
 
 int main(){
+	srand (time(NULL));
   	int** board;
 	int row, col;
 	board = create_board();
 	print_board(board);
-	int game_over = 0, turn =  rand() % 2;
+	int game_over = 0, turn;
+	turn =  rand() % 2;
   	while (!game_over){
 		// Ask for Player 1 Input
 		if (turn == PLAYER){
@@ -265,14 +276,16 @@ int main(){
 					printf("Player 1 wins!!\n");
 					game_over = 1;
 				}
-            print_board(board);
+            /*
+			print_board(board);
 		    turn += 1;
-		    turn = turn % 2;
+		    turn = turn % 2;*/
             }
 		}
 
 		// Ask for Player 2 Input
-		if (turn == AI && !game_over){
+		//if (turn == AI && !game_over){
+		else{
             //col = rand() % COLUMN_COUNT;
             col = pick_best_move(board, AI_PIECE);
             //col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
@@ -284,14 +297,19 @@ int main(){
                 }
                 drop_piece(board, row, col, AI_PIECE);
                 if (winning_move(board, AI_PIECE)){
-                    printf("Player 1 wins!!\n");
+                    printf("Player 2 (AI) wins!!\n");
 					game_over = 1;
                 }
-                print_board(board);
+                /*
+				print_board(board);
                 turn += 1;
                 turn = turn % 2;
+				*/
             }
         }
+		print_board(board);
+        turn += 1;
+        turn = turn % 2;
     }
 	printf("GAME OVER\n");
   	free(board);
