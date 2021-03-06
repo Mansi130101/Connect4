@@ -3,6 +3,7 @@
 #include <stdlib.h> 
 #include <math.h>
 #include <time.h>
+#include <algorithm>
 using namespace std;
 
 int ROW_COUNT = 6;
@@ -13,6 +14,7 @@ int EMPTY = 0;
 int PLAYER_PIECE = 1;
 int AI_PIECE = 2;
 int WINDOW_LENGTH = 4;
+int None = 10;
 
 int** create_board(){
   	int** board = (int **)calloc(ROW_COUNT, sizeof(int *));
@@ -111,7 +113,7 @@ int score_position(int** board, int piece){
 	// Score center column
 	int center_array[ROW_COUNT];
 	for (int i = 0; i < ROW_COUNT; i++){
-		center_array[i] = board[i][COLUMN_COUNT/2];
+		center_array[i] = board[i][(COLUMN_COUNT-1)/2];
 		center_count = count(center_array,ROW_COUNT,piece);
 	}
 	score += center_count * 3;
@@ -168,21 +170,21 @@ int* get_valid_locations(int** board){
             valid_locations[k]=col;
         }
     }
-    valid_locations[0] = k;
+    valid_locations[0] = k+1;
 	return valid_locations;
 }
 
 int pick_best_move(int** board, int piece){
 	int* valid_locations;
     valid_locations = get_valid_locations(board);
-	int best_score = -10000, col, row, score;
+	int best_score = -100000000, col, row, score;
     int** temp_board;
 	temp_board = create_board();
     int len_valid_loc = valid_locations[0];
     int RandIndex = rand() % len_valid_loc;
 	int best_col = valid_locations[RandIndex+1];
 	for(int i = 1; i < len_valid_loc+1; i++){
-        col = valid_locations[i+1];
+        col = valid_locations[i];
 		row = get_next_open_row(board, col);
 		for (int r = 0; r < ROW_COUNT; r++)
             for (int c = 0; c < COLUMN_COUNT; c++)
@@ -199,57 +201,96 @@ int pick_best_move(int** board, int piece){
 
 int is_terminal_node(int** board){
 	int a = winning_move(board, PLAYER_PIECE) + winning_move(board, AI_PIECE);
-  if (get_valid_locations(board)[0] == 0)
-    a +=1;
-  return a;
+  	if (get_valid_locations(board)[0] == 1)
+    	a += 1;
+	if (a>0)
+  		return 1;
+	return 0;
 }
 
-/*
-def minimax(board, depth, alpha, beta, maximizingPlayer){
-	valid_locations = get_valid_locations(board)
-	is_terminal = is_terminal_node(board)
-	if depth == 0 or is_terminal:
-		if is_terminal:
-			if winning_move(board, AI_PIECE):
-				return (None, 100000000000000)
-			elif winning_move(board, PLAYER_PIECE):
-				return (None, -10000000000000)
-			else: # Game is over, no more valid moves
-				return (None, 0)
-		else: # Depth is zero
-			return (None, score_position(board, AI_PIECE))
-	if maximizingPlayer:
-		value = -math.inf
-		column = random.choice(valid_locations)
-		for col in valid_locations:
-			row = get_next_open_row(board, col)
-			b_copy = board.copy()
-			drop_piece(b_copy, row, col, AI_PIECE)
-			new_score = minimax(b_copy, depth-1, alpha, beta, False)[1]
-			if new_score > value:
-				value = new_score
-				column = col
-			alpha = max(alpha, value)
-			if alpha >= beta:
-				break
-		return column, value
-
-	else: # Minimizing player
-		value = math.inf
-		column = random.choice(valid_locations)
-		for col in valid_locations:
-			row = get_next_open_row(board, col)
-			b_copy = board.copy()
-			drop_piece(b_copy, row, col, PLAYER_PIECE)
-			new_score = minimax(b_copy, depth-1, alpha, beta, True)[1]
-			if new_score < value:
-				value = new_score
-				column = col
-			beta = min(beta, value)
-			if alpha >= beta:
-				break
-		return column, value
-}*/
+struct col_val { 
+    int column, value; 
+}; 
+typedef struct col_val Struct; 
+  
+Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer){
+	Struct out,new_score;
+	int* valid_locations;
+    valid_locations = get_valid_locations(board);
+	int len_valid_loc = valid_locations[0];
+	int is_terminal = is_terminal_node(board);
+	if (depth == 0 || is_terminal){
+		if (is_terminal){
+			if (winning_move(board, AI_PIECE)){
+				out.column = None;
+				out.value = 100000000;
+				return out;
+			}
+			else{
+				if (winning_move(board, PLAYER_PIECE)){
+					out.column = None;
+					out.value = -100000000;
+					return out;
+				}
+				else{ // Game is over, no more valid moves
+					out.column = None;
+					out.value = 0;
+					return out;
+				}
+			}
+		}
+		else{ // Depth is zero
+				out.column = None;
+				out.value = score_position(board, AI_PIECE);
+				return out;
+		}
+	}
+	int col,row;
+	int** b_copy;
+	b_copy = create_board();
+	if (maximizingPlayer){
+		out.value = -100000000;
+		out.column = valid_locations[rand() % len_valid_loc +1];
+		for(int i = 0; i < len_valid_loc; i++){
+        	col = valid_locations[i];
+			row = get_next_open_row(board, col);
+			for (int r = 0; r < ROW_COUNT; r++)
+            	for (int c = 0; c < COLUMN_COUNT; c++)
+                	b_copy[r][c] = board[r][c];
+			drop_piece(b_copy, row, col, AI_PIECE);
+			new_score = minimax(b_copy, depth-1, alpha, beta, 0);
+			if (new_score.value > out.value){
+				out.value = new_score.value;
+				out.column = col;
+			}
+			alpha = std::max(alpha, out.value);
+			if (alpha >= beta)
+				break;
+		}
+		return out;
+	}
+	else{ //Minimizing player
+		out.value = -100000000;
+		out.column = valid_locations[(rand() % len_valid_loc) +1];
+		for(int i = 0; i < len_valid_loc; i++){
+        	col = valid_locations[i];
+			row = get_next_open_row(board, col);
+			for (int r = 0; r < ROW_COUNT; r++)
+            	for (int c = 0; c < COLUMN_COUNT; c++)
+                	b_copy[r][c] = board[r][c];
+			drop_piece(b_copy, row, col, PLAYER_PIECE);
+			new_score = minimax(b_copy, depth-1, alpha, beta, 1);
+			if (new_score.value < out.value){
+				out.value = new_score.value;
+				out.column = col;
+			}
+			alpha = std::min(alpha, out.value);
+			if (alpha >= beta)
+				break;
+		}
+		return out;
+	}
+}
 
 int main(){
 	srand (time(NULL));
@@ -276,19 +317,20 @@ int main(){
 					printf("Player 1 wins!!\n");
 					game_over = 1;
 				}
-            /*
 			print_board(board);
 		    turn += 1;
-		    turn = turn % 2;*/
+		    turn = turn % 2;
             }
 		}
 
 		// Ask for Player 2 Input
-		//if (turn == AI && !game_over){
-		else{
+		if (turn == AI && !game_over){
             //col = rand() % COLUMN_COUNT;
-            col = pick_best_move(board, AI_PIECE);
-            //col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
+            //col = pick_best_move(board, AI_PIECE);
+            Struct out;
+			out = minimax(board, 3, -100000000, 100000000, 1);
+			col = out.column;
+			int minimax_score = out.value;
             if (is_valid_location(board, col)){
                 row = get_next_open_row(board, col);
                 if (row == -1){
@@ -300,16 +342,16 @@ int main(){
                     printf("Player 2 (AI) wins!!\n");
 					game_over = 1;
                 }
-                /*
 				print_board(board);
                 turn += 1;
                 turn = turn % 2;
-				*/
             }
         }
+		/*
 		print_board(board);
         turn += 1;
         turn = turn % 2;
+		*/
     }
 	printf("GAME OVER\n");
   	free(board);
