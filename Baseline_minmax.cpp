@@ -251,7 +251,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 	if (maximizingPlayer){
 		out.value = -10000000;
 		out.column = valid_locations[(rand() % len_valid_loc) +1];
-		for(int i = 1; i < len_valid_loc; i++){
+		for(int i = 1; i <= len_valid_loc; i++){
         	col = valid_locations[i];
 			row = get_next_open_row(board, col);
 			for (int r = 0; r < ROW_COUNT; r++)
@@ -272,7 +272,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 	else{ //Minimizing player
 		out.value = -10000000;
 		out.column = valid_locations[(rand() % len_valid_loc) +1];
-		for(int i = 0; i < len_valid_loc; i++){
+		for(int i = 0; i <= len_valid_loc; i++){
         	col = valid_locations[i];
 			row = get_next_open_row(board, col);
 			for (int r = 0; r < ROW_COUNT; r++)
