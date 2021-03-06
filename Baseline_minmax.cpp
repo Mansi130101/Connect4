@@ -170,7 +170,7 @@ int* get_valid_locations(int** board){
             		valid_locations[k]=col;
         	}
     	}
-    	valid_locations[0] = k+1;
+    	valid_locations[0] = k+1; //length of the valid locations
 	return valid_locations;
 }
 
@@ -181,7 +181,7 @@ int pick_best_move(int** board, int piece){
     	int** temp_board;
 	temp_board = create_board();
     	int len_valid_loc = valid_locations[0];
-    	int RandIndex = rand() % len_valid_loc;
+    	int RandIndex = rand() % (len_valid_loc-1);
 	int best_col = valid_locations[RandIndex+1];
 	for(int i = 1; i < len_valid_loc+1; i++){
         	col = valid_locations[i];
