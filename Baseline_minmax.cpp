@@ -43,7 +43,7 @@ int get_next_open_row(int** board, int col){
 void print_board(int** board){
 	for (int i = ROW_COUNT-1; i > -1; i--){
       		for (int j = 0; j < COLUMN_COUNT; j++)
-         		cout<<board[i][j];
+         		cout<<board[i][j]<<" ";
 		cout<<"\n";
 	}
 	cout<<"\n";
