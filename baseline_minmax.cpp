@@ -37,25 +37,25 @@ void print_board(int** board){
 }
 
 int winning_move(int** board, int piece){
-	# Check horizontal locations for win
+	// Check horizontal locations for win
 	for (int c = 0; c < COLUMN_COUNT-3; c++)
 		for (int r = 0; r < ROW_COUNT; r++)
 			if (board[r][c] == piece && board[r][c+1] == piece && board[r][c+2] == piece && board[r][c+3] == piece)
 				return 1;
 
-	# Check vertical locations for win
+	// Check vertical locations for win
 	for (int c = 0; c < COLUMN_COUNT; c++)
 		for(int r = 0; r < ROW_COUNT-3; r++)
 			if (board[r][c] == piece && board[r+1][c] == piece && board[r+2][c] == piece && board[r+3][c] == piece)
 				return 1;
 
-	# Check positively sloped diaganols
+	// Check positively sloped diaganols
 	for (int c = 0; c < COLUMN_COUNT-3; c++)
 		for (int r = 0; r < ROW_COUNT-3; r++)
 			if (board[r][c] == piece && board[r+1][c+1] == piece && board[r+2][c+2] == piece && board[r+3][c+3] == piece)
 				return 1;
 
-	# Check negatively sloped diaganols
+	// Check negatively sloped diaganols
 	for (int c = 0; c < COLUMN_COUNT-3; c++)
 		for (int r = 3; r < ROW_COUNT; r++)
 			if (board[r][c] == piece && board[r-1][c+1] == piece && board[r-2][c+2] == piece && board[r-3][c+3] == piece)
