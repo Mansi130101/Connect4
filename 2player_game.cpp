@@ -1,7 +1,7 @@
-#include<iostream>
+#include <iostream>
 #include <stdio.h> 
 #include <stdlib.h> 
-#include<math.h>
+#include <math.h>
 using namespace std;
 
 int ROW_COUNT = 6;
@@ -10,7 +10,7 @@ int COLUMN_COUNT = 7;
 int** create_board(){
   	int** board = (int **)calloc(ROW_COUNT, sizeof(int *));
   	for (int i=0; i<ROW_COUNT; i++)
-        	board[i] = (int *)calloc(COLUMN_COUNT, sizeof(int));
+        board[i] = (int *)calloc(COLUMN_COUNT, sizeof(int));
 	return board;
 }
 
@@ -20,7 +20,7 @@ void drop_piece(int** board, int row, int col, int piece){
 
 int is_valid_location(int** board, int col){
 	if (board[ROW_COUNT-1][col] == 0)
-    		return 1;
+    	return 1;
   	return 0;
 }
 
@@ -28,12 +28,16 @@ int get_next_open_row(int** board, int col){
 	for (int r = 0; r < ROW_COUNT; r++)
 		if (board[r][col] == 0)
 			return r;
+	return -1;
 }
 
 void print_board(int** board){
-	for (int i = 0; i <  ROW_COUNT; i++)
-      		for (int j = COLUMN_COUNT-1; j > -1; j--)
-         		printf("%d ", *(board + i*COLUMN_COUNT + j));
+	for (int i = ROW_COUNT-1; i > -1; i--){
+      	for (int j = COLUMN_COUNT-1; j > -1; j--)
+         	printf("%d ", board[i][j]);
+		printf("\n");
+	}
+	printf("\n");
 }
 
 int winning_move(int** board, int piece){
@@ -73,11 +77,13 @@ int main(){
   	while (!game_over){
 		// Ask for Player 1 Input
 		if (turn == 0){
-			printf("Player 1: Select a column form 0-6");
+			printf("Player 1: Select a column form 0-6:\n");
 			scanf("%d",&col);
 
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
+				if (row == -1)
+					continue;
 				drop_piece(board, row, col, 1);
 				if (winning_move(board, 1)){
 					printf("Player 1 wins!!\n");
@@ -87,11 +93,13 @@ int main(){
 		}
 		// Ask for Player 2 Input
 		else{			
-			printf("Player 2: Select a column form 0-6");
+			printf("Player 2: Select a column form 0-6:\n");
 			scanf("%d",&col);
 
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
+				if (row == -1)
+					continue;
 				drop_piece(board, row, col, 2);
 				if (winning_move(board, 1)){
 					printf("Player 2 wins!!\n");
@@ -102,8 +110,8 @@ int main(){
 		print_board(board);
 		turn += 1;
 		turn = turn % 2;
-		return 0;
 	}
 	printf("GAME OVER\n");
   	free(board);
+	return 0;
  }
