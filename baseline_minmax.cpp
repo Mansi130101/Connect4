@@ -86,26 +86,26 @@ int count(int* window, int size_window, int piece){
 }
 
 int evaluate_window(int* window, int size_window, int piece){
-  int score = 0;
-  int opp_piece = PLAYER_PIECE;
-  if (piece == PLAYER_PIECE)
-  	opp_piece = AI_PIECE;
+	int score = 0;
+	int opp_piece = PLAYER_PIECE;
+	if (piece == PLAYER_PIECE)
+		opp_piece = AI_PIECE;
 
-  if (count(window,size_window,piece) == 4)
-  	score += 100;
-  else{
-        if (count(window,size_window,piece) == 3 && count(window,size_window,EMPTY) == 1)
-        	score += 5;
+	if (count(window,size_window,piece) == 4)
+		score += 100;
+	else{
+		if (count(window,size_window,piece) == 3 && count(window,size_window,EMPTY) == 1)
+			score += 5;
 		else{
 			if (count(window,size_window,piece) == 2 && count(window,size_window,EMPTY) == 2)
-            			score += 2;
+				score += 2;
 		}
-  }
+	}
 
-  if (count(window,size_window,opp_piece) == 3 && count(window,size_window,EMPTY) == 1)
-  	score -= 10;
+	if (count(window,size_window,opp_piece) == 3 && count(window,size_window,EMPTY) == 1)
+		score -= 10;
 
-  return score;
+	return score;
 }
 
 int score_position(int** board, int piece){
@@ -128,9 +128,9 @@ int score_position(int** board, int piece){
 			for (int w = 0; w < WINDOW_LENGTH; w++)
 				window[w] = row_array[c+w];
 			score += evaluate_window(window, WINDOW_LENGTH, piece);
-        }
-    }
-    // Score Vertical
+        	}
+    	}
+    	// Score Vertical
 	for (int c = 0; c < COLUMN_COUNT; c++){
 		for (int j = 0; j < ROW_COUNT; j++)
 			col_array[j] = board[j][c];
@@ -138,8 +138,8 @@ int score_position(int** board, int piece){
 			for (int w = 0; w < WINDOW_LENGTH; w++)
 				window[w] = col_array[r+w];
 			score += evaluate_window(window, WINDOW_LENGTH, piece);
-        }
-    }
+        	}
+    	}
 	// Score positive sloped diagonal
 	for (int r = 0; r < ROW_COUNT-3; r++){
 		for (int c = 0; c < COLUMN_COUNT-3; c++){
@@ -334,8 +334,8 @@ int main(){
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
 				if (row == -1){
-						printf("Error\n Whole column is filled\n");
-						break;
+					printf("Error\n Whole column is filled\n");
+					break;
 				}
 				drop_piece(board, row, col, AI_PIECE);
 				if (winning_move(board, AI_PIECE)){
@@ -347,7 +347,7 @@ int main(){
 				turn = turn % 2;
 		    	}
 		}
-	    }
+	}
 	printf("GAME OVER\n");
   	free(board);
 	return 0;
