@@ -34,10 +34,10 @@ int get_next_open_row(int** board, int col){
 void print_board(int** board){
 	for (int i = ROW_COUNT-1; i > -1; i--){
       	for (int j = 0; j < COLUMN_COUNT; j++)
-         	printf("%d ", board[i][j]);
-		printf("\n");
+         	cout<<board[i][j];
+		cout<<"\n";
 	}
-	printf("\n");
+	cout<<"\n";
 }
 
 int winning_move(int** board, int piece){
@@ -77,8 +77,8 @@ int main(){
   	while (!game_over){
 		// Ask for Player 1 Input
 		if (turn == 0){
-			printf("Player 1: Select a column form 0-6:\n");
-			scanf("%d",&col);
+			cout<<"Player 1: Select a column form 0-6:\n";
+			cin>>col;
 
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
@@ -95,7 +95,7 @@ int main(){
 		// Ask for Player 2 Input
 		else{			
 			printf("Player 2: Select a column form 0-6:\n");
-			scanf("%d",&col);
+			cin>>col;
 
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
