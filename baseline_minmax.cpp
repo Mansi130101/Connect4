@@ -1,4 +1,4 @@
-#incluse<iostream>
+#include<iostream>
 #include <stdio.h> 
 #include <stdlib.h> 
 #include<math.h>
@@ -72,14 +72,14 @@ int main(){
 	int game_over = 0, turn = 0;
   	while (!game_over){
 		// Ask for Player 1 Input
-		if turn == 0{
+		if (turn == 0){
 			printf("Player 1: Select a column form 0-6");
 			scanf("%d",&col);
 
-			if is_valid_location(board, col){
+			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
 				drop_piece(board, row, col, 1);
-				if winning_move(board, 1){
+				if (winning_move(board, 1)){
 					printf("Player 1 wins!!\n");
 					game_over = 1;
 				}
@@ -93,7 +93,7 @@ int main(){
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
 				drop_piece(board, row, col, 2);
-				if winning_move(board, 1){
+				if (winning_move(board, 1)){
 					printf("Player 2 wins!!\n");
 					game_over = 1;
 				}
