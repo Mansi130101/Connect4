@@ -73,8 +73,19 @@ int main(){
 	int row, col;
 	board = create_board();
 	print_board(board);
-	int game_over = 0, turn = 0;
+	int game_over = 0, turn = 0, flag=0;
   	while (!game_over){
+		flag=0;
+		for (int c = 0; c < COLUMN_COUNT; c++){
+			if (is_valid_location(board, c)){
+				flag=1;
+				continue;
+			}
+		}
+		if (!flag){
+			cout<<"MATCH DRAW\n";
+			game_over = 1;
+		}
 		// Ask for Player 1 Input
 		if (turn == 0){
 			cout<<"Player 1: Select a column form 0-6:\n";
@@ -83,12 +94,12 @@ int main(){
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
 				if (row == -1){
-					printf("Error\n Whole column is filled\n");
+					cout<<"Error\n Whole column is filled\n";
 					break;
 				}
 				drop_piece(board, row, col, 1);
 				if (winning_move(board, 1)){
-					printf("Player 1 wins!!\n");
+					cout<<"Player 1 wins!!\n";
 					game_over = 1;
 				}
 			}
@@ -101,12 +112,12 @@ int main(){
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
 				if (row == -1){
-					printf("Error\n Whole column is filled\n");
+					cout<<"Error\n Whole column is filled\n";
 					break;
 				}
 				drop_piece(board, row, col, 2);
 				if (winning_move(board, 1)){
-					printf("Player 2 wins!!\n");
+					cout<<"Player 2 wins!!\n";
 					game_over = 1;
 				}
 			}
