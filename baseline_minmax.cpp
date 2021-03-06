@@ -1,7 +1,8 @@
-#include<iostream>
+#include <iostream>
 #include <stdio.h> 
 #include <stdlib.h> 
-#include<math.h>
+#include <math.h>
+#include <time.h>
 using namespace std;
 
 int ROW_COUNT = 6;
@@ -11,12 +12,12 @@ int AI = 1;
 int EMPTY = 0;
 int PLAYER_PIECE = 1;
 int AI_PIECE = 2;
-
+int WINDOW_LENGTH = 4;
 
 int** create_board(){
   	int** board = (int **)calloc(ROW_COUNT, sizeof(int *));
   	for (int i=0; i<ROW_COUNT; i++)
-        	board[i] = (int *)calloc(COLUMN_COUNT, sizeof(int));
+        board[i] = (int *)calloc(COLUMN_COUNT, sizeof(int));
 	return board;
 }
 
@@ -26,7 +27,7 @@ void drop_piece(int** board, int row, int col, int piece){
 
 int is_valid_location(int** board, int col){
 	if (board[ROW_COUNT-1][col] == 0)
-    		return 1;
+    	return 1;
   	return 0;
 }
 
@@ -34,12 +35,16 @@ int get_next_open_row(int** board, int col){
 	for (int r = 0; r < ROW_COUNT; r++)
 		if (board[r][col] == 0)
 			return r;
+	return -1;
 }
 
 void print_board(int** board){
-	for (int i = 0; i <  ROW_COUNT; i++)
-      		for (int j = COLUMN_COUNT-1; j > -1; j--)
-         		printf("%d ", *(board + i*COLUMN_COUNT + j));
+	for (int i = ROW_COUNT-1; i > -1; i--){
+      	for (int j = 0; j < COLUMN_COUNT; j++)
+         	printf("%d ", board[i][j]);
+		printf("\n");
+	}
+	printf("\n");
 }
 
 int winning_move(int** board, int piece){
@@ -70,40 +75,60 @@ int winning_move(int** board, int piece){
   	return 0;
 }
 
-int evaluate_window(window, piece){
+int count(int* window, int size_window, int piece){
+	int window_count = 0;
+	for (int i = 0; i < size_window; i++)
+		if (window[i]==piece)
+			window_count += 1;
+	return window_count;
+}
+
+int evaluate_window(int* window, int size_window, int piece){
   int score = 0;
   int opp_piece = PLAYER_PIECE;
   if (piece == PLAYER_PIECE)
     opp_piece = AI_PIECE;
 
-  if (window.count(piece) == 4)
+  if (count(window,size_window,piece) == 4)
     score += 100;
-  elif (window.count(piece) == 3 and window.count(EMPTY) == 1)
-    score += 5;
-  elif (window.count(piece) == 2 and window.count(EMPTY) == 2)
-    score += 2;
+  else{
+        if (count(window,size_window,piece) == 3 && count(window,size_window,EMPTY) == 1)
+            score += 5;
+        if (count(window,size_window,piece) == 2 && count(window,size_window,EMPTY) == 2)
+            score += 2;
+  }
 
-  if (window.count(opp_piece) == 3 and window.count(EMPTY) == 1)
+  if (count(window,size_window,piece) == 3 && count(window,size_window,EMPTY) == 1)
     score -= 4;
 
   return score;
 }
 
-def score_position(board, piece){
-	int score = 0;
+int score_position(int** board, int piece){
+	int score = 0, center_count = 0;
 	// Score center column
-	center_array = [int(i) for i in list(board[:, COLUMN_COUNT//2])]
-	center_count = center_array.count(piece)
-	score += center_count * 3
+	int center_array[ROW_COUNT];
+	for (int i = 0; i < ROW_COUNT; i++){
+		center_array[i] = board[i][COLUMN_COUNT/2];
+		center_count = count(center_array,ROW_COUNT,piece);
+	}
+	score += center_count * 3;
 
+    /*
 	// Score Horizontal
-	for r in range(ROW_COUNT):
-		row_array = [int(i) for i in list(board[r,:])]
-		for c in range(COLUMN_COUNT-3):
-			window = row_array[c:c+WINDOW_LENGTH]
-			score += evaluate_window(window, piece)
-
-	// Score Vertical
+	int** row_array[ROW_COUNT][COLUMN_COUNT];
+	int* window[WINDOW_LENGTH];
+	for (int r = 0; r < ROW_COUNT; r++){
+		for (int j = 0; j < COLUMN_COUNT; j++){
+			row_array[r][j] = board[r][j];	
+		for (int c = 0; c < COLUMN_COUNT-3; c++){
+			for (int w = 0; w < WINDOW_LENGTH; w++)
+				window[w] = row_array[c+w]
+			score += evaluate_window(window, WINDOW_LENGTH, piece)
+	}
+					   
+	
+    // Score Vertical
 	for c in range(COLUMN_COUNT):
 		col_array = [int(i) for i in list(board[:,c])]
 		for r in range(ROW_COUNT-3):
@@ -120,58 +145,155 @@ def score_position(board, piece){
 		for c in range(COLUMN_COUNT-3):
 			window = [board[r+3-i][c+i] for i in range(WINDOW_LENGTH)]
 			score += evaluate_window(window, piece)
-
+    */
 	return score;
+}
+
+int* get_valid_locations(int** board){
+	int* valid_locations;
+    valid_locations = (int *)calloc(50, sizeof(int));
+    int k = 0;
+	for (int col = 0; col < COLUMN_COUNT; col++){
+		if (is_valid_location(board, col)){
+			k++;
+            valid_locations[k]=col;
+        }
+    }
+    valid_locations[0] = k;
+	return valid_locations;
+}
+
+int pick_best_move(int** board, int piece){
+	int* valid_locations;
+    valid_locations = get_valid_locations(board);
+	int best_score = -10000, col, row, score;
+    int** temp_board;
+	temp_board = create_board();
+    int len_valid_loc = valid_locations[0]; 
+    int RandIndex = rand() % len_valid_loc;
+	int best_col = valid_locations[RandIndex+1];
+	for(int i = 1; i < len_valid_loc+1; i++){
+        col = valid_locations[i+1];
+		row = get_next_open_row(board, col);
+		for (int r = 0; r < ROW_COUNT; r++)
+            for (int c = 0; c < COLUMN_COUNT; c++)
+                temp_board[r][c] = board[r][c];
+		drop_piece(temp_board, row, col, piece);
+		score = score_position(temp_board, piece);
+		if (score > best_score){
+			best_score = score;
+			best_col = col;
+        }
+    }
+	return best_col;
 }
 
 int is_terminal_node(int** board){
 	int a = winning_move(board, PLAYER_PIECE) + winning_move(board, AI_PIECE);
-  if (len(get_valid_locations(board)) == 0)
+  if (get_valid_locations(board)[0] == 0)
     a +=1;
   return a;
 }
-                                             
+
+/*
+def minimax(board, depth, alpha, beta, maximizingPlayer){
+	valid_locations = get_valid_locations(board)
+	is_terminal = is_terminal_node(board)
+	if depth == 0 or is_terminal:
+		if is_terminal:
+			if winning_move(board, AI_PIECE):
+				return (None, 100000000000000)
+			elif winning_move(board, PLAYER_PIECE):
+				return (None, -10000000000000)
+			else: # Game is over, no more valid moves
+				return (None, 0)
+		else: # Depth is zero
+			return (None, score_position(board, AI_PIECE))
+	if maximizingPlayer:
+		value = -math.inf
+		column = random.choice(valid_locations)
+		for col in valid_locations:
+			row = get_next_open_row(board, col)
+			b_copy = board.copy()
+			drop_piece(b_copy, row, col, AI_PIECE)
+			new_score = minimax(b_copy, depth-1, alpha, beta, False)[1]
+			if new_score > value:
+				value = new_score
+				column = col
+			alpha = max(alpha, value)
+			if alpha >= beta:
+				break
+		return column, value
+
+	else: # Minimizing player
+		value = math.inf
+		column = random.choice(valid_locations)
+		for col in valid_locations:
+			row = get_next_open_row(board, col)
+			b_copy = board.copy()
+			drop_piece(b_copy, row, col, PLAYER_PIECE)
+			new_score = minimax(b_copy, depth-1, alpha, beta, True)[1]
+			if new_score < value:
+				value = new_score
+				column = col
+			beta = min(beta, value)
+			if alpha >= beta:
+				break
+		return column, value
+}*/
+
 int main(){
   	int** board;
 	int row, col;
 	board = create_board();
 	print_board(board);
-	int game_over = 0, turn = 0;
+	int game_over = 0, turn =  rand() % 2;
   	while (!game_over){
 		// Ask for Player 1 Input
-		if (turn == 0){
-			printf("Player 1: Select a column form 0-6");
+		if (turn == PLAYER){
+			printf("Player 1: Select a column form 0-6:\n");
 			scanf("%d",&col);
 
 			if (is_valid_location(board, col)){
 				row = get_next_open_row(board, col);
-				drop_piece(board, row, col, 1);
-				if (winning_move(board, 1)){
+				if (row == -1){
+					printf("Error\n Whole column is filled\n");
+					break;
+                }
+				drop_piece(board, row, col, PLAYER_PIECE);
+				if (winning_move(board, PLAYER_PIECE)){
 					printf("Player 1 wins!!\n");
 					game_over = 1;
 				}
-			}
+            print_board(board);
+		    turn += 1;
+		    turn = turn % 2;
+            }
 		}
-		// Ask for Player 2 Input
-		else{			
-			printf("Player 2: Select a column form 0-6");
-			scanf("%d",&col);
 
-			if (is_valid_location(board, col)){
-				row = get_next_open_row(board, col);
-				drop_piece(board, row, col, 2);
-				if (winning_move(board, 1)){
-					printf("Player 2 wins!!\n");
+		// Ask for Player 2 Input
+		if (turn == AI && !game_over){
+            //col = rand() % COLUMN_COUNT;
+            col = pick_best_move(board, AI_PIECE);
+            //col, minimax_score = minimax(board, 5, -math.inf, math.inf, True)
+            if (is_valid_location(board, col)){
+                row = get_next_open_row(board, col);
+                if (row == -1){
+					printf("Error\n Whole column is filled\n");
+					break;
+                }
+                drop_piece(board, row, col, AI_PIECE);
+                if (winning_move(board, AI_PIECE)){
+                    printf("Player 1 wins!!\n");
 					game_over = 1;
-				}
-			}
-		}
-		print_board(board);
-		turn += 1;
-		turn = turn % 2;
-		return 0;
-	}
+                }
+                print_board(board);
+                turn += 1;
+                turn = turn % 2;
+            }
+        }
+    }
 	printf("GAME OVER\n");
   	free(board);
+	return 0;
  }
-
