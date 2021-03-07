@@ -183,7 +183,7 @@ int pick_best_move(int** board, int piece){
     int len_valid_loc = valid_locations[0];
     int RandIndex = rand() % len_valid_loc;
 	int best_col = valid_locations[RandIndex+1];
-	for(int i = 1; i < len_valid_loc+1; i++){
+	for(int i = 1; i <= len_valid_loc; i++){
         col = valid_locations[i];
 		row = get_next_open_row(board, col);
 		for (int r = 0; r < ROW_COUNT; r++)
@@ -250,7 +250,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 	b_copy = create_board();
 	if (maximizingPlayer){
 		out.value = -10000000;
-		out.column = valid_locations[(rand() % len_valid_loc) +1];
+		out.column = valid_locations[1];
 		for(int i = 1; i <= len_valid_loc; i++){
         	col = valid_locations[i];
 			row = get_next_open_row(board, col);
@@ -270,9 +270,9 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 		return out;
 	}
 	else{ //Minimizing player
-		out.value = -10000000;
-		out.column = valid_locations[(rand() % len_valid_loc) +1];
-		for(int i = 0; i <= len_valid_loc; i++){
+		out.value = 10000000;
+		out.column = valid_locations[1];
+		for(int i = 1; i <= len_valid_loc; i++){
         	col = valid_locations[i];
 			row = get_next_open_row(board, col);
 			for (int r = 0; r < ROW_COUNT; r++)
@@ -284,7 +284,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 				out.value = new_score.value;
 				out.column = col;
 			}
-			alpha = std::min(alpha, out.value);
+			beta = std::min(beta, out.value);
 			if (alpha >= beta)
 				break;
 		}
@@ -336,11 +336,11 @@ int main(){
 		// Ask for Player 2 Input
 		if (turn == AI && !game_over){
             //col = rand() % COLUMN_COUNT;
-            col = pick_best_move(board, AI_PIECE);
-            /*Struct out;
-			out = minimax(board, 5, -10000000, 10000000, 1);
+            //col = pick_best_move(board, AI_PIECE);
+            Struct out;
+			out = minimax(board, 6, -10000000, 10000000, 1);
 			col = out.column;
-			int minimax_score = out.value;*/
+			int minimax_score = out.value;
             if (is_valid_location(board, col)){
                 row = get_next_open_row(board, col);
                 if (row == -1){
