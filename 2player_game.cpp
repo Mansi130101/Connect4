@@ -116,7 +116,7 @@ int main(){
 					break;
 				}
 				drop_piece(board, row, col, 2);
-				if (winning_move(board, 1)){
+				if (winning_move(board, 2)){
 					cout<<"Player 2 wins!!\n";
 					game_over = 1;
 				}
