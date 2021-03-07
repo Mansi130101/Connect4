@@ -170,7 +170,7 @@ int* get_valid_locations(int** board){
             valid_locations[k]=col;
         }
     }
-    valid_locations[0] = k+1;
+    valid_locations[0] = k;
 	return valid_locations;
 }
 
@@ -181,7 +181,7 @@ int pick_best_move(int** board, int piece){
     int** temp_board;
 	temp_board = create_board();
     int len_valid_loc = valid_locations[0];
-    int RandIndex = rand() % len_valid_loc-1;
+    int RandIndex = rand() % len_valid_loc;
 	int best_col = valid_locations[RandIndex+1];
 	for(int i = 1; i < len_valid_loc+1; i++){
         col = valid_locations[i];
@@ -251,7 +251,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 	if (maximizingPlayer){
 		out.value = -10000000;
 		out.column = valid_locations[(rand() % len_valid_loc) +1];
-		for(int i = 1; i < len_valid_loc; i++){
+		for(int i = 1; i <= len_valid_loc; i++){
         	col = valid_locations[i];
 			row = get_next_open_row(board, col);
 			for (int r = 0; r < ROW_COUNT; r++)
@@ -272,7 +272,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 	else{ //Minimizing player
 		out.value = -10000000;
 		out.column = valid_locations[(rand() % len_valid_loc) +1];
-		for(int i = 0; i < len_valid_loc; i++){
+		for(int i = 0; i <= len_valid_loc; i++){
         	col = valid_locations[i];
 			row = get_next_open_row(board, col);
 			for (int r = 0; r < ROW_COUNT; r++)
