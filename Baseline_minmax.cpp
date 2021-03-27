@@ -6,8 +6,9 @@
 #include <algorithm>
 using namespace std;
 
-int ROW_COUNT = 6;
-int COLUMN_COUNT = 7;
+int ROWS = 6;
+int COLUMNS = 7;
+int INF=10000000;
 int PLAYER = 0;
 int AI = 1;
 int EMPTY = 0;
@@ -16,33 +17,33 @@ int AI_PIECE = 2;
 int WINDOW_LENGTH = 4;
 int None = 10;
 
-int** create_board(){
-  	int** board = (int **)calloc(ROW_COUNT, sizeof(int *));
-  	for (int i=0; i<ROW_COUNT; i++)
-        board[i] = (int *)calloc(COLUMN_COUNT, sizeof(int));
+int** draw_board(){
+  	int** board = (int **)calloc(ROWS, sizeof(int *));
+  	for (int i=0; i<ROWS; i++)
+        board[i] = (int *)calloc(COLUMNS, sizeof(int));
 	return board;
 }
 
-void drop_piece(int** board, int row, int col, int piece){
+void play_move(int** board, int row, int col, int piece){
 	board[row][col] = piece;
 }
 
-int is_valid_location(int** board, int col){
-	if (board[ROW_COUNT-1][col] == 0)
+int is_valid(int** board, int col){
+	if (board[ROWS-1][col] == 0)
     	return 1;
   	return 0;
 }
 
-int get_next_open_row(int** board, int col){
-	for (int r = 0; r < ROW_COUNT; r++)
+int find_empty_row(int** board, int col){
+	for (int r = 0; r < ROWS; r++)
 		if (board[r][col] == 0)
 			return r;
 	return -1;
 }
 
 void print_board(int** board){
-	for (int i = ROW_COUNT-1; i > -1; i--){
-      	for (int j = 0; j < COLUMN_COUNT; j++)
+	for (int i = ROWS-1; i > -1; i--){
+      	for (int j = 0; j < COLUMNS; j++)
          	cout<<board[i][j]<<" ";
 		cout<<"\n";
 	}
@@ -51,26 +52,26 @@ void print_board(int** board){
 
 int winning_move(int** board, int piece){
 	// Check horizontal locations for win
-	for (int c = 0; c < COLUMN_COUNT-3; c++)
-		for (int r = 0; r < ROW_COUNT; r++)
+	for (int c = 0; c < COLUMNS-3; c++)
+		for (int r = 0; r < ROWS; r++)
 			if (board[r][c] == piece && board[r][c+1] == piece && board[r][c+2] == piece && board[r][c+3] == piece)
 				return 1;
 
 	// Check vertical locations for win
-	for (int c = 0; c < COLUMN_COUNT; c++)
-		for(int r = 0; r < ROW_COUNT-3; r++)
+	for (int c = 0; c < COLUMNS; c++)
+		for(int r = 0; r < ROWS-3; r++)
 			if (board[r][c] == piece && board[r+1][c] == piece && board[r+2][c] == piece && board[r+3][c] == piece)
 				return 1;
 
 	// Check positively sloped diaganols
-	for (int c = 0; c < COLUMN_COUNT-3; c++)
-		for (int r = 0; r < ROW_COUNT-3; r++)
+	for (int c = 0; c < COLUMNS-3; c++)
+		for (int r = 0; r < ROWS-3; r++)
 			if (board[r][c] == piece && board[r+1][c+1] == piece && board[r+2][c+2] == piece && board[r+3][c+3] == piece)
 				return 1;
 
 	// Check negatively sloped diaganols
-	for (int c = 0; c < COLUMN_COUNT-3; c++)
-		for (int r = 3; r < ROW_COUNT; r++)
+	for (int c = 0; c < COLUMNS-3; c++)
+		for (int r = 3; r < ROWS; r++)
 			if (board[r][c] == piece && board[r-1][c+1] == piece && board[r-2][c+2] == piece && board[r-3][c+3] == piece)
 				return 1;
   
@@ -85,17 +86,17 @@ int count(int* window, int size_window, int piece){
 	return window_count;
 }
 
-int evaluate_window(int* window, int size_window, int piece){
+int evaluate(int* window, int size_window, int piece){
   	int score = 0;
   	int opp_piece = PLAYER_PIECE;
   	if (piece == PLAYER_PIECE)
     	opp_piece = AI_PIECE;
 
   	if (count(window,size_window,piece) == 4)
-    	score += 100;
+    	score += 10000;
   	else{
         if (count(window,size_window,piece) == 3 && count(window,size_window,EMPTY) == 1)
-            score += 5;
+            score += 50;
 		else{
 			if (count(window,size_window,piece) == 2 && count(window,size_window,EMPTY) == 2)
             	score += 2;
@@ -103,94 +104,87 @@ int evaluate_window(int* window, int size_window, int piece){
   	}
 
   	if (count(window,size_window,opp_piece) == 3 && count(window,size_window,EMPTY) == 1)
-    	score -= 50;
+    	score -= 51;
 
   	return score;
 }
 
-int score_position(int** board, int piece){
-	int score = 0, center_count = 0;
-	// Score center column
-	int center_array[ROW_COUNT];
-	for (int i = 0; i < ROW_COUNT; i++){
-		center_array[i] = board[i][(COLUMN_COUNT-1)/2];
-	}
-	center_count = count(center_array,ROW_COUNT,piece);
-	score += (center_count * 3);
+int calculate_score(int** board, int piece){
+	int score = 0;
 	// Score Horizontal
 	int window[WINDOW_LENGTH];
-	int row_array[COLUMN_COUNT];
-	int col_array[ROW_COUNT];
-	for (int r = 0; r < ROW_COUNT; r++){
-		for (int j = 0; j < COLUMN_COUNT; j++)
+	int row_array[COLUMNS];
+	int col_array[ROWS];
+	for (int r = 0; r < ROWS; r++){
+		for (int j = 0; j < COLUMNS; j++)
 			row_array[j] = board[r][j];
-		for (int c = 0; c < COLUMN_COUNT-3; c++){
+		for (int c = 0; c < COLUMNS-3; c++){
 			for (int w = 0; w < WINDOW_LENGTH; w++)
 				window[w] = row_array[c+w];
-			score += evaluate_window(window, WINDOW_LENGTH, piece);
+			score += evaluate(window, WINDOW_LENGTH, piece);
         }
     }
     // Score Vertical
-	for (int c = 0; c < COLUMN_COUNT; c++){
-		for (int j = 0; j < ROW_COUNT; j++)
+	for (int c = 0; c < COLUMNS; c++){
+		for (int j = 0; j < ROWS; j++)
 			col_array[j] = board[j][c];
-		for (int r = 0; r < ROW_COUNT-3; r++){
+		for (int r = 0; r < ROWS-3; r++){
 			for (int w = 0; w < WINDOW_LENGTH; w++)
 				window[w] = col_array[r+w];
-			score += evaluate_window(window, WINDOW_LENGTH, piece);
+			score += evaluate(window, WINDOW_LENGTH, piece);
         }
     }
 	// Score positive sloped diagonal
-	for (int r = 0; r < ROW_COUNT-3; r++){
-		for (int c = 0; c < COLUMN_COUNT-3; c++){
+	for (int r = 0; r < ROWS-3; r++){
+		for (int c = 0; c < COLUMNS-3; c++){
 			for (int w = 0; w < WINDOW_LENGTH; w++)
 				window[w] = board[r+w][c+w];
-			score += evaluate_window(window, WINDOW_LENGTH, piece);
+			score += evaluate(window, WINDOW_LENGTH, piece);
 		}
 	}
 	// Score negative sloped diagonal
-	for (int r = 0; r < ROW_COUNT-3; r++){
-		for (int c = 0; c < COLUMN_COUNT-3; c++){
+	for (int r = 0; r < ROWS-3; r++){
+		for (int c = 0; c < COLUMNS-3; c++){
 			for (int w = 0; w < WINDOW_LENGTH; w++)
 				window[w] = board[r+3-w][c+w];
-			score += evaluate_window(window, WINDOW_LENGTH, piece);
+			score += evaluate(window, WINDOW_LENGTH, piece);
 		}
 	}
     
 	return score;
 }
 
-int* get_valid_locations(int** board){
-	int* valid_locations;
-    valid_locations = (int *)calloc(50, sizeof(int));
+int* get_valid_columns(int** board){
+	int* valid_columns;
+    valid_columns = (int *)calloc(COLUMNS+2, sizeof(int));
     int k = 0;
-	for (int col = 0; col < COLUMN_COUNT; col++){
-		if (is_valid_location(board, col)){
+	for (int col = 0; col < COLUMNS; col++){
+		if (is_valid(board, col)){
 			k++;
-            valid_locations[k]=col;
+            valid_columns[k]=col;
         }
     }
-    valid_locations[0] = k;
-	return valid_locations;
+    valid_columns[0] = k;
+	return valid_columns;
 }
 
 int pick_best_move(int** board, int piece){
-	int* valid_locations;
-    valid_locations = get_valid_locations(board);
-	int best_score = -100000000, col, row, score;
+	int* valid_columns;
+    valid_columns = get_valid_columns(board);
+	int best_score = -INF, col, row, score;
     int** temp_board;
-	temp_board = create_board();
-    int len_valid_loc = valid_locations[0];
+	temp_board = draw_board();
+    int len_valid_loc = valid_columns[0];
     int RandIndex = rand() % len_valid_loc;
-	int best_col = valid_locations[RandIndex+1];
+	int best_col = valid_columns[RandIndex+1];
 	for(int i = 1; i <= len_valid_loc; i++){
-        col = valid_locations[i];
-		row = get_next_open_row(board, col);
-		for (int r = 0; r < ROW_COUNT; r++)
-            for (int c = 0; c < COLUMN_COUNT; c++)
+        col = valid_columns[i];
+		row = find_empty_row(board, col);
+		for (int r = 0; r < ROWS; r++)
+            for (int c = 0; c < COLUMNS; c++)
                 temp_board[r][c] = board[r][c];
-		drop_piece(temp_board, row, col, piece);
-		score = score_position(temp_board, piece);
+		play_move(temp_board, row, col, piece);
+		score = calculate_score(temp_board, piece);
 		if (score > best_score){
 			best_score = score;
 			best_col = col;
@@ -200,12 +194,13 @@ int pick_best_move(int** board, int piece){
 }
 
 int is_terminal_node(int** board){
-	int a = winning_move(board, PLAYER_PIECE) + winning_move(board, AI_PIECE);
-  	if (get_valid_locations(board)[0] == 1)
+	int a=0;
+	a = winning_move(board, PLAYER_PIECE) + winning_move(board, AI_PIECE);
+	int *valid_columns;
+	valid_columns=get_valid_columns(board);
+  	if (valid_columns[0]== 0)
     	a += 1;
-	if (a>0)
-  		return 1;
-	return 0;
+	return (a>0)?1:0;
 }
 
 struct col_val { 
@@ -215,21 +210,21 @@ typedef struct col_val Struct;
   
 Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer){
 	Struct out,new_score;
-	int* valid_locations;
-    valid_locations = get_valid_locations(board);
-	int len_valid_loc = valid_locations[0];
+	int* valid_columns;
+    valid_columns = get_valid_columns(board);
+	int len_valid_loc = valid_columns[0];
 	int is_terminal = is_terminal_node(board);
 	if (depth == 0 || is_terminal){
 		if (is_terminal){
 			if (winning_move(board, AI_PIECE)){
 				out.column = None;
-				out.value = 100000000;
+				out.value = INF+depth;
 				return out;
 			}
 			else{
 				if (winning_move(board, PLAYER_PIECE)){
 					out.column = None;
-					out.value = -100000000;
+					out.value = -INF+depth;
 					return out;
 				}
 				else{ // Game is over, no more valid moves
@@ -241,51 +236,45 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 		}
 		else{ // Depth is zero
 			out.column = None;
-			out.value = score_position(board, AI_PIECE);
+			out.value = calculate_score(board, AI_PIECE);
 			return out;
 		}
 	}
 	int col,row;
-	int** b_copy;
-	b_copy = create_board();
 	if (maximizingPlayer){
-		out.value = -10000000;
-		out.column = valid_locations[1];
+		out.value = -1*INF;
+		out.column = valid_columns[1];
 		for(int i = 1; i <= len_valid_loc; i++){
-        	col = valid_locations[i];
-			row = get_next_open_row(board, col);
-			for (int r = 0; r < ROW_COUNT; r++)
-            	for (int c = 0; c < COLUMN_COUNT; c++)
-                	b_copy[r][c] = board[r][c];
-			drop_piece(b_copy, row, col, AI_PIECE);
-			new_score = minimax(b_copy, depth-1, alpha, beta, 0);
+        	col = valid_columns[i];
+			row = find_empty_row(board, col);
+			board[row][col]=AI_PIECE;
+			new_score = minimax(board, depth-1, alpha, beta, 0);
+			board[row][col]=0;
 			if (new_score.value > out.value){
 				out.value = new_score.value;
 				out.column = col;
 			}
-			alpha = std::max(alpha, out.value);
+			alpha =max(alpha, out.value);
 			if (alpha >= beta)
 				break;
 		}
 		return out;
 	}
 	else{ //Minimizing player
-		out.value = 10000000;
-		out.column = valid_locations[1];
+		out.value = INF;
+		out.column = valid_columns[1];
 		for(int i = 1; i <= len_valid_loc; i++){
-        	col = valid_locations[i];
-			row = get_next_open_row(board, col);
-			for (int r = 0; r < ROW_COUNT; r++)
-            	for (int c = 0; c < COLUMN_COUNT; c++)
-                	b_copy[r][c] = board[r][c];
-			drop_piece(b_copy, row, col, PLAYER_PIECE);
-			new_score = minimax(b_copy, depth-1, alpha, beta, 1);
+        	col = valid_columns[i];
+			row = find_empty_row(board, col);
+			board[row][col]=PLAYER_PIECE;
+			new_score = minimax(board, depth-1, alpha, beta, 1);
+			board[row][col]=0;
 			if (new_score.value < out.value){
 				out.value = new_score.value;
 				out.column = col;
 			}
-			beta = std::min(beta, out.value);
-			if (alpha >= beta)
+			beta =min(beta, out.value);
+			if (beta<=alpha)
 				break;
 		}
 		return out;
@@ -296,19 +285,19 @@ int main(){
 	srand (time(NULL));
   	int** board;
 	int row, col;
-	board = create_board();
+	board = draw_board();
 	print_board(board);
   	int game_over = 0, turn = rand() % 2, flag=0;
   	while (!game_over){
 		flag=0;
-		for (int c = 0; c < COLUMN_COUNT; c++){
-			if (is_valid_location(board, c)){
+		for (int c = 0; c < COLUMNS; c++){
+			if (is_valid(board, c)){
 				flag=1;
 				continue;
 			}
 		}
 		if (!flag){
-			cout<<"MATCH DRAW\n";
+			cout<<"MATCH DRAW !!\n";
 			game_over = 1;
 		}
 		// Ask for Player 1 Input
@@ -316,40 +305,32 @@ int main(){
 			cout<<"Player 1: Select a column form 0-6:\n";
 			cin>>col;
 
-			if (is_valid_location(board, col)){
-				row = get_next_open_row(board, col);
-				if (row == -1){
-					cout<<"Error\n Whole column is filled\n";
-					break;
-                }
-				drop_piece(board, row, col, PLAYER_PIECE);
+			if (col>=0 && col<7 && is_valid(board, col)){
+				row = find_empty_row(board, col);
+				play_move(board, row, col, PLAYER_PIECE);
 				if (winning_move(board, PLAYER_PIECE)){
-					cout<<"Player 1 (PLAYER) wins!!\n";
+					cout<<"Player 1 (PLAYER) wins !!\n";
 					game_over = 1;
 				}
-			print_board(board);
-		    turn += 1;
-		    turn = turn % 2;
+				print_board(board);
+		    	turn += 1;
+		    	turn = turn % 2;
             }
+            else
+            	cout<<"Invalid Move\n";
 		}
 
 		// Ask for Player 2 Input
 		if (turn == AI && !game_over){
-            //col = rand() % COLUMN_COUNT;
-            //col = pick_best_move(board, AI_PIECE);
             Struct out;
-			out = minimax(board, 6, -10000000, 10000000, 1);
+			out = minimax(board, 7, -INF-10, INF+10, 1);
 			col = out.column;
 			int minimax_score = out.value;
-            if (is_valid_location(board, col)){
-                row = get_next_open_row(board, col);
-                if (row == -1){
-					cout<<"Error\n Whole column is filled\n";
-					break;
-                }
-                drop_piece(board, row, col, AI_PIECE);
+            if (is_valid(board, col)){
+                row = find_empty_row(board, col);
+                play_move(board, row, col, AI_PIECE);
                 if (winning_move(board, AI_PIECE)){
-                    cout<<"Player 2 (AI) wins!!\n";
+                    cout<<"Player 2 (AI) wins !!\n";
 					game_over = 1;
                 }
 				print_board(board);
