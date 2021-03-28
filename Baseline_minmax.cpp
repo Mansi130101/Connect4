@@ -172,19 +172,15 @@ int pick_best_move(int** board, int piece){
 	int* valid_columns;
     valid_columns = get_valid_columns(board);
 	int best_score = -INF, col, row, score;
-    int** temp_board;
-	temp_board = draw_board();
     int len_valid_loc = valid_columns[0];
     int RandIndex = rand() % len_valid_loc;
 	int best_col = valid_columns[RandIndex+1];
 	for(int i = 1; i <= len_valid_loc; i++){
         col = valid_columns[i];
 		row = find_empty_row(board, col);
-		for (int r = 0; r < ROWS; r++)
-            for (int c = 0; c < COLUMNS; c++)
-                temp_board[r][c] = board[r][c];
-		play_move(temp_board, row, col, piece);
-		score = calculate_score(temp_board, piece);
+		play_move(board, row, col, piece);
+		score = calculate_score(board, piece);
+		board[row][col]=0;
 		if (score > best_score){
 			best_score = score;
 			best_col = col;
@@ -196,11 +192,14 @@ int pick_best_move(int** board, int piece){
 int is_terminal_node(int** board){
 	int a=0;
 	a = winning_move(board, PLAYER_PIECE) + winning_move(board, AI_PIECE);
+	if(a>0)
+		return 1;
 	int *valid_columns;
 	valid_columns=get_valid_columns(board);
   	if (valid_columns[0]== 0)
     	a += 1;
-	return (a>0)?1:0;
+    free(valid_columns);
+	return (a>0)?1:0;	
 }
 
 struct col_val { 
@@ -219,17 +218,20 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 			if (winning_move(board, AI_PIECE)){
 				out.column = None;
 				out.value = INF+depth;
+				free(valid_columns);
 				return out;
 			}
 			else{
 				if (winning_move(board, PLAYER_PIECE)){
 					out.column = None;
 					out.value = -INF-depth;
+					free(valid_columns);
 					return out;
 				}
 				else{ // Game is over, no more valid moves
 					out.column = None;
 					out.value = 0;
+					free(valid_columns);
 					return out;
 				}
 			}
@@ -237,6 +239,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 		else{ // Depth is zero
 			out.column = None;
 			out.value = calculate_score(board, AI_PIECE);
+			free(valid_columns);
 			return out;
 		}
 	}
@@ -258,6 +261,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 			if (alpha >= beta)
 				break;
 		}
+		free(valid_columns);
 		return out;
 	}
 	else{ //Minimizing player
@@ -277,6 +281,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 			if (beta<=alpha)
 				break;
 		}
+		free(valid_columns);
 		return out;
 	}
 }
@@ -302,7 +307,7 @@ int main(){
 		}
 		// Ask for Player 1 Input
 		if (turn == PLAYER){
-			cout<<"Player 1: Select a column form 0-6:\n";
+			cout<<"Player 1: Select a column from 0-6:\n";
 			cin>>col;
 
 			if (col>=0 && col<7 && is_valid(board, col)){
@@ -323,8 +328,11 @@ int main(){
 		// Ask for Player 2 Input
 		if (turn == AI && !game_over){
             Struct out;
+            clock_t begin = clock();
+            double time_spent=0.0;
 			out = minimax(board, 7, -INF-50, INF+50, 1);
 			col = out.column;
+			//col=pick_best_move(board,AI_PIECE);
 			int minimax_score = out.value;
             if (is_valid(board, col)){
                 row = find_empty_row(board, col);
@@ -334,6 +342,9 @@ int main(){
 					game_over = 1;
                 }
 				print_board(board);
+				clock_t end = clock();
+				time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+			    //printf("Time taken in minimax alpha beta move = %0.6f seconds\n\n",time_spent);
                 turn += 1;
                 turn = turn % 2;
             }
