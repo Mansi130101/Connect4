@@ -242,7 +242,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 	}
 	int col,row;
 	if (maximizingPlayer){
-		out.value = -1*INF;
+		out.value = -1*INF-50;
 		out.column = valid_columns[1];
 		for(int i = 1; i <= len_valid_loc; i++){
         	col = valid_columns[i];
@@ -261,7 +261,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 		return out;
 	}
 	else{ //Minimizing player
-		out.value = INF;
+		out.value = INF+50;
 		out.column = valid_columns[1];
 		for(int i = 1; i <= len_valid_loc; i++){
         	col = valid_columns[i];
