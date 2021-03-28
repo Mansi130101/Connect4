@@ -224,7 +224,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 			else{
 				if (winning_move(board, PLAYER_PIECE)){
 					out.column = None;
-					out.value = -INF+depth;
+					out.value = -INF-depth;
 					return out;
 				}
 				else{ // Game is over, no more valid moves
@@ -242,7 +242,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 	}
 	int col,row;
 	if (maximizingPlayer){
-		out.value = -1*INF;
+		out.value = -1*INF-50;
 		out.column = valid_columns[1];
 		for(int i = 1; i <= len_valid_loc; i++){
         	col = valid_columns[i];
@@ -261,7 +261,7 @@ Struct minimax(int** board, int depth, int alpha, int beta, int maximizingPlayer
 		return out;
 	}
 	else{ //Minimizing player
-		out.value = INF;
+		out.value = INF+50;
 		out.column = valid_columns[1];
 		for(int i = 1; i <= len_valid_loc; i++){
         	col = valid_columns[i];
@@ -323,7 +323,7 @@ int main(){
 		// Ask for Player 2 Input
 		if (turn == AI && !game_over){
             Struct out;
-			out = minimax(board, 7, -INF-10, INF+10, 1);
+			out = minimax(board, 7, -INF-50, INF+50, 1);
 			col = out.column;
 			int minimax_score = out.value;
             if (is_valid(board, col)){
